@@ -1,3 +1,5 @@
+![Common Entry Test](https://github.com/akshatvg/common-entry-test/blob/master/header.png "Common Entry Test")
+
 # Common Entry Test
 
 ### Your one stop solution to club and chapter recruitments in VIT
