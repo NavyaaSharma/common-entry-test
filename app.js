@@ -10,7 +10,7 @@ var mongoClient=mongodb.MongoClient
 var url='mongodb://localhost:27017'
 
 // var pathName=path.join(__dirname+'../public')
-// app.use('/',express.static(pathName))
+app.use(express.static("static"))
 // console.log(__dirname)
 
 app.get('/',(req,res)=>{
