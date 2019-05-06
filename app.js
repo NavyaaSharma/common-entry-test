@@ -23,6 +23,19 @@ app.get('/signup.html',(req,res)=>{
 
 app.get('/login.html',(req,res)=>{
     res.sendFile(path.join(__dirname+'/login.html'))
+app.use(express.static("static"))
+// console.log(__dirname)
+
+app.get('/',(req,res)=>{
+    res.sendFile(path.join(__dirname+'/static/index.html'))
+})
+
+app.get('/signup',(req,res)=>{
+    res.sendFile(path.join(__dirname+'/static/signup.html'))
+})
+
+app.get('/login',(req,res)=>{
+    res.sendFile(path.join(__dirname+'/static/login.html'))
 })
 
 app.get('/userSignup',(req,res)=>{
@@ -111,4 +124,4 @@ app.get('/userlogin',(req,res)=>{
 app.listen(3000,()=>
 {
     console.log('server is running on http://localhost:3000')
-})
+
