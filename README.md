@@ -32,3 +32,8 @@ Common Entry Test empowers users with a distinctive set of features that other c
 3) Easy to use.
 
 4) Appropriate precautions to prevent cheating on recruitment tests.
+
+
+## Check out Common Entry Test's demo video here:
+
+<http://bit.ly/cetdemo>
