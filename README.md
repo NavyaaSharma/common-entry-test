@@ -1,4 +1,4 @@
-![Common Entry Test](https://github.com/akshatvg/common-entry-test/blob/master/Codes/static/img/header.png "Common Entry Test")
+![Common Entry Test](https://github.com/akshatvg/common-entry-test/blob/master/docs/static/img/header.png "Common Entry Test")
 
 # Common Entry Test
 
