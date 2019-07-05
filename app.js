@@ -1,10 +1,11 @@
-var express=require('express')
-var app=express()
-var path=require('path')
-var mongodb=require('mongodb')
-var session=require('express-session')
-var userRegister=require('./models/db-mongoose')
-var {webq,appq,iosq,blockchainq,designq,mlq,aiq,comcodq,vrq,contentq,manageq,sponsq}=require('./models/db-ques')
+var express = require('express')
+var app = express()
+var path = require('path')
+var session = require('express-session')
+var userRegister = require('./models/db-mongoose')
+var myques = require('./models/db-ques')
+var bodyParser = require('body-parser')
+var ans = require('./models/db-answers')
 
 app.use(session({
     secret: 'hello',
@@ -12,567 +13,698 @@ app.use(session({
     saveUninitialized: true
 }));
 
-var mongoClient=mongodb.MongoClient
-var url='mongodb://localhost:27017'
-
 app.use(express.static("static"))
-app.set('view engine','hbs')
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({
+    extended: false
+}))
 
-var auth = function(req, res, next) {
+app.set('view engine', 'hbs')
+
+//function for authorization of user
+var auth = function (req, res, next) {
     userSession = req.session;
 
-    if (req.session.userName){
-    
+    if (req.session.userName) {
+
         return next();
-        
-    }
-     
-    else
-      return res.sendStatus(401);
-  };
+
+    } else
+        return res.sendStatus(401);
+};
+
+//defining global variables
 var userSession
 var Name
+var now
 var message1
-app.get('/',(req,res)=>{
-    res.sendFile(path.join(__dirname+'/static/signup.html'))
+var newarr = []
+var tests = []
+var useremail
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname + '/static/signup.html'))
 })
 
-app.get('/signin',(req,res)=>{
-    res.render('signin',{
-        message:" "
-     })
+app.get('/signin', (req, res) => {
+    res.render('signin', {
+        message: " "
+    })
 })
 
-app.get('/userSignup',(req,res)=>{
+app.get('/userSignup', (req, res) => {
     var uname1 = req.query.first_name;
     var uname2 = req.query.last_name;
     var uemail = req.query.email;
-    var phone=req.query.phoneno;
-    var rno=req.query.regno;
-    var pass=req.query.password;
+    var phone = req.query.phoneno;
+    var rno = req.query.regno;
+    var pass = req.query.password;
 
-    user=new userRegister({
-        name:uname1+" "+uname2,
-        email:uemail,
+    var user = new userRegister({
+        name: uname1 + " " + uname2,
+        email: uemail,
         phone,
-        regno:rno,
-        password:pass
+        regno: rno,
+        password: pass
     })
     user.save()
-    res.render('signin',{
-        message:" "
-     })
+    res.render('signin', {
+
+        message: " "
+    })
 
 })
 
-app.get('/userlogin',(req,res)=>{
+app.get('/userlogin', (req, res) => {
 
-    userSession=req.session
+    userSession = req.session
     var lname = req.query.email;
-    var lpass= req.query.password;
+    var lpass = req.query.password;
+    if (lname == 'admin' && lpass == 'admin') {
+        res.render('admin', {
+            msg: 'Admin'
+        })
+    } else {
+        userRegister.find({
+            email: lname,
+            password: lpass
+        }, (err, user) => {
+            if (err) {
+                throw err
+            }
+            console.log(user)
+            if (user.length == 0) {
+                res.render('signin', {
+                    layout: false,
+                    message: "Invalid email or password "
+                })
+            } else {
+                Name = user[0].name
+                message1 = user[0].name
+                useremail = user[0].email
+                console.log("message1: " + message1)
+                req.session.userName = Name
+                res.render('index', {
 
-    userRegister.find({email:lname,password:lpass},(err,user)=>{
-        if(err)
-        {
+                    msg: message1
+                })
+            }
+        })
+    }
+
+
+})
+app.get('/index', auth, function (req, res) {
+    res.render('index', {
+
+        msg: message1
+    })
+})
+
+app.get('/list', auth, function (req, res) {
+    res.render('list', {
+
+        msg: message1
+    })
+})
+
+app.get('/calendar', auth, function (req, res) {
+    res.render('calendar', {
+
+        msg: message1
+    })
+})
+
+app.get('/exam', auth, function (req, res) {
+    res.render('exam', {
+
+        msg: message1
+    })
+})
+app.get('/tech', auth, function (req, res) {
+    res.render('tech', {
+
+        msg: message1
+    })
+})
+app.get('/manage', auth, function (req, res) {
+    res.render('manag', {
+
+        msg: message1
+    })
+})
+
+var message2 = ""
+
+app.get('/addQues', function (req, res) {
+    res.render('add-ques', {
+        msg: 'Admin',
+        msg2: message2
+    })
+})
+
+app.get('/viewSub', function (req, res) {
+    res.render('view-sub', {
+        msg: 'Admin',
+    })
+
+})
+
+app.get('/admin', function (req, res) {
+    message2 = ""
+    res.render('admin', {
+        msg: 'Admin',
+    })
+
+})
+
+app.get('/logout', auth, function (req, res) {
+    userSession = req.session;
+    Name = undefined
+    lists = []
+    req.session.destroy(function (err) {
+        if (err) {
+            throw err;
+        } else {
+            console.log("Session is destroyed, You are redirected to the login page.");
+            res.render('signin', {
+                layout: false,
+                message: " "
+            })
+        }
+    })
+})
+
+app.get('/adminlogout', function (req, res) {
+
+    res.render('signin', {
+        message: " "
+    })
+
+})
+
+app.post('/storeResponse', (req, res) => {
+
+    var data = JSON.parse(req.body.display)
+
+    var i
+    var arr = []
+    for (i = 0; i < data.response.length; i++) {
+        var obj = {
+            ques: data.response[i].ques,
+            answer: data.response[i].answer
+        }
+        arr.push(obj)
+    }
+    var newobj = {
+        name: message1,
+        email: useremail,
+        domain: data.domain,
+        title: data.title,
+        response: arr
+    }
+
+    var resp = new ans(newobj)
+    resp.save(() => {
+        console.log('response added')
+    })
+    res.redirect('/complete')
+})
+
+app.post('/addq', (req, res) => {
+    var data = JSON.parse(req.body.display)
+    var newobj = {
+        domain: data.domain,
+        title: data.title,
+        ques: data.ques
+    }
+    console.log(data)
+    var newques = new myques(newobj)
+    newques.save(() => {
+        console.log(newques)
+    })
+    message2 = "Question Added Successfully"
+    res.redirect('/addQues')
+})
+
+app.post('/submissions', (req, res) => {
+    var data = JSON.parse(req.body.display)
+    console.log(data)
+    ans.find({
+        domain: data.domain,
+        title: data.title
+    }, (err, responses) => {
+        if (err) {
             throw err
         }
-        console.log(user)
-        if(user.length==0)
-        {
-            res.render('signin',{
-                message:"Invalid email or password "
-            })
-        }
-        else{
-            Name=user[0].name
-            message1=user[0].name
-            console.log("message1: "+message1)
-            req.session.userName=Name
-            res.render('index',{
-                msg:message1
-            })
-        }
+        newarr = responses
+        res.redirect('/success')
     })
-})
-app.get('/index',auth,function(req,res){
-    res.render('index',{
-        msg:message1
-    })
-})
-app.get('/exam',auth,function(req,res){
-    res.render('exam',{
-        msg:message1
-    })
-})
-app.get('/tech',auth,function(req,res){
-    res.render('tech',{
-        msg:message1
-    })
-})
-app.get('/manage',auth,function(req,res){
-    res.render('manag',{
-        msg:message1
-    })
+
 })
 
-app.get('/logout' ,auth, function(req,res){
-    userSession = req.session;
-    Name=undefined
-	req.session.destroy(function(err){
-        if(err)
-        {
-			throw err;
-        }
-        else
-        {
-            console.log("Session is destroyed, You are redirected to the login page.");
-			res.render('signin',{
-                message:" "
-             })
-        }
-		})
-	})
+app.get('/success', (req, res) => {
+    console.log(newarr)
+    res.render('response', {
+        arr: newarr,
+        msg: 'Admin'
+    })
+
+})
+
+app.get('/complete', (req, res) => {
+
+    tests.push(now)
+    now = undefined
+    res.render('complete')
+
+})
 
 
-app.get('/webexam',auth,function(err,res){
+app.get('/webexam', function (err, res) {
 
-    webq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
-            }
-        }
-        
-        for(i=0;i<10;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('webexam',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2],
-            ques4:arr[3],
-            ques5:arr[4],
-            ques6:arr[5],
-            ques7:arr[6],
-            ques8:arr[7],
-            ques9:arr[8],
-            ques10:arr[9]
-            
+    var x = tests.includes('web')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
         })
-
-
-    })
-        
-    
-})
-
-app.get('/comcodexam',auth,function(err,res){
-
-    comcodq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
-            }
-        }
-        
-        for(i=0;i<10;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('comcod',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2],
-            ques4:arr[3],
-            ques5:arr[4],
-            ques6:arr[5],
-            ques7:arr[6],
-            ques8:arr[7],
-            ques9:arr[8],
-            ques10:arr[9]
-            
-        })
-    
-    })
-})
-
-
-app.get('/mlaiexam',auth,function(err,res){
-
-    mlq.find({},(err,userTest1)=>{
-        var n=userTest1.length
-        var arr=[]
-        l=[]
-        ctr1=0
-        while(ctr1!=5)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr1=ctr1+1
-            }
-        }
-        
-        for(i=0;i<5;i++)
-        {
-            var value=userTest1[l[i]].ques
-            arr.push(value)
-        }
-
-        aiq.find({},(err,userTest2)=>{
-
-            var n1=userTest2.length
-            var brr=[]
-            l1=[]
-            ctr2=0
-            while(ctr2!=5)
-            {
-                y=Math.floor(Math.random()*n1)
-                if(l1.includes(y)==false)
-                {
-                    l1.push(y)
-                    ctr2=ctr2+1
+    } else {
+        now = 'web'
+        myques.find({
+            title: 'Web Development'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
                 }
             }
-        
-            for(i=0;i<5;i++)
-            {
-                var value=userTest2[l1[i]].ques
-                brr.push(value)
-            }    
-        
-        res.render('mlai',{
-            qa1:arr[0],
-            qa2:arr[1],
-            qa3:arr[2],
-            qa4:arr[3],
-            qa5:arr[4],
-            qb1:brr[0],
-            qb2:brr[1],
-            qb3:brr[2],
-            qb4:brr[3],
-            qb5:brr[4]
-            
-        })
+
+            for (i = 0; i < 10; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Web Development',
+                dom: 'Technical',
+                ques: arr,
+                name: message1
+
+            })
+
 
         })
 
+    }
 
-    })
-    
+
 })
 
-app.get('/appexam',auth,function(err,res){
-    
-    appq.find({},(err,userTest1)=>{
-        var n=userTest1.length
-        var arr=[]
-        l=[]
-        ctr1=0
-        while(ctr1!=5)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr1=ctr1+1
-            }
-        }
-        
-        for(i=0;i<5;i++)
-        {
-            var value=userTest1[l[i]].ques
-            arr.push(value)
-        }
+app.get('/comcodexam', auth, function (err, res) {
 
-        iosq.find({},(err,userTest2)=>{
+    var x = tests.includes('cc')
 
-            var n1=userTest2.length
-            var brr=[]
-            l1=[]
-            ctr2=0
-            while(ctr2!=5)
-            {
-                y=Math.floor(Math.random()*n1)
-                if(l1.includes(y)==false)
-                {
-                    l1.push(y)
-                    ctr2=ctr2+1
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'cc'
+        myques.find({
+            title: 'Competitive Coding'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
                 }
             }
-        
-            for(i=0;i<5;i++)
-            {
-                var value=userTest2[l1[i]].ques
-                brr.push(value)
-            }    
-        
-        res.render('app',{
-            qa1:arr[0],
-            qa2:arr[1],
-            qa3:arr[2],
-            qa4:arr[3],
-            qa5:arr[4],
-            qb1:brr[0],
-            qb2:brr[1],
-            qb3:brr[2],
-            qb4:brr[3],
-            qb5:brr[4]
-            
-        })
 
-        })
-
-
-    })
-    
-})
-
-app.get('/blockchain',auth,function(err,res){
-    
-    blockchainq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
+            for (i = 0; i < 10; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
             }
-        }
-        
-        for(i=0;i<10;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('blockchain',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2],
-            ques4:arr[3],
-            ques5:arr[4],
-            ques6:arr[5],
-            ques7:arr[6],
-            ques8:arr[7],
-            ques9:arr[8],
-            ques10:arr[9]
-            
+
+            res.render('test', {
+                title: 'Competitive Coding',
+                dom: 'Technical',
+                ques: arr,
+                name: message1
+
+            })
+
         })
-    
-    })
+    }
 })
 
-app.get('/vrexam',auth,function(err,res){
-    
-    vrq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
+
+app.get('/mlaiexam', auth, function (err, res) {
+
+    var x = tests.includes('mlai')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'mlai'
+        myques.find({
+            title: 'Machine Learning & Artificial Intelligence'
+        }, (err, userTest1) => {
+            var n = userTest1.length
+            var arr = []
+            l = []
+            ctr1 = 0
+            while (ctr1 != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr1 = ctr1 + 1
+                }
             }
-        }
-        
-        for(i=0;i<5;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('vr',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2],
-            ques4:arr[3],
-            ques5:arr[4]
-            
-        })
-    
-    })
-    
-})
 
-app.get('/opexam',auth,function(err,res){
-
-    manageq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
+            for (i = 0; i < 10; i++) {
+                var value = userTest1[l[i]].ques
+                arr.push(value)
             }
-        }
-        
-        for(i=0;i<10;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('opexam',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2],
-            ques4:arr[3],
-            ques5:arr[4],
-            ques6:arr[5],
-            ques7:arr[6],
-            ques8:arr[7],
-            ques9:arr[8],
-            ques10:arr[9]
-            
+
+            res.render('test', {
+                title: 'Machine Learning & Artificial Intelligence',
+                dom: 'Technical',
+                ques: arr,
+                name: message1
+
+            })
         })
-    
-    })
+    }
 })
 
-app.get('/sponsexam',auth,function(err,res){
-    
-    sponsq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
+app.get('/appexam', auth, function (err, res) {
+
+    var x = tests.includes('app')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'app'
+        myques.find({
+            title: 'App Development'
+        }, (err, userTest1) => {
+            var n = userTest1.length
+            var arr = []
+            l = []
+            ctr1 = 0
+            while (ctr1 != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr1 = ctr1 + 1
+                }
             }
-        }
-        
-        for(i=0;i<3;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('spon',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2]
-            
-        })
-    
-    })    
-})
-
-app.get('/cwexam',auth,function(err,res){
-
-    contentq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
+            for (i = 0; i < 10; i++) {
+                var value = userTest1[l[i]].ques
+                arr.push(value)
             }
-        }
-        
-        for(i=0;i<2;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('cw',{
-            ques1:arr[0],
-            ques2:arr[1]
-            
+
+            res.render('test', {
+                title: 'App Development',
+                dom: 'Technical',
+                ques: arr,
+                name: message1
+
+            })
+
         })
-    
-    })   
+    }
+
 })
 
-app.get('/designexam',auth,function(err,res){
 
-    designq.find({},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
+app.get('/blockchain', auth, function (err, res) {
+
+    var x = tests.includes('blockchain')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'blockchain'
+        myques.find({
+            title: 'Blockchain'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
+                }
             }
-        }
-        
-        for(i=0;i<10;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('design',{
-            ques1:arr[0],
-            ques2:arr[1],
-            ques3:arr[2],
-            ques4:arr[3],
-            ques5:arr[4],
-            ques6:arr[5],
-            ques7:arr[6],
-            ques8:arr[7],
-            ques9:arr[8],
-            ques10:arr[9]
-            
+
+            for (i = 0; i < 10; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Blockchain',
+                dom: 'Technical',
+                ques: arr,
+                name: message1
+
+            })
+
         })
-    
-    })
-    
+    }
 })
 
-app.listen(3002,()=>
-{
-    console.log('server is running on http://localhost:3002')
+app.get('/vrexam', auth, function (err, res) {
+
+    var x = tests.includes('vr')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'vr'
+        myques.find({
+            title: 'Augmented & Virtual Reality'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 5) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
+                }
+            }
+
+            for (i = 0; i < 5; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Augmented & Virtual Reality',
+                domain: 'Technical',
+                ques: arr,
+                name: message1
+
+            })
+
+        })
+    }
+})
+
+app.get('/opexam', auth, function (err, res) {
+
+    var x = tests.includes('op')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'op'
+        myques.find({
+            title: 'Operations'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
+                }
+            }
+
+            for (i = 0; i < 10; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Operations',
+                dom: 'Management',
+                ques: arr,
+                name: message1
+
+            })
+
+        })
+    }
+})
+
+app.get('/sponsexam', auth, function (err, res) {
+
+    var x = tests.includes('spons')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'spons'
+        myques.find({
+            title: 'Sponsorship'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 3) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
+                }
+            }
+
+            for (i = 0; i < 3; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Sponsorship',
+                dom: 'Management',
+                ques: arr,
+                name: message1
+
+            })
+
+        })
+    }
+})
+
+app.get('/cwexam', auth, function (err, res) {
+    var x = tests.includes('cw')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'cw'
+        myques.find({
+            title: 'Content Writing'
+        }, (err, userTest) => {
+            var n = userTest.length
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 2) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
+                }
+            }
+
+            for (i = 0; i < 2; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Content Writing',
+                dom: 'Management',
+                ques: arr,
+                name: message1
+
+            })
+
+        })
+    }
+})
+
+app.get('/designexam', auth, function (err, res) {
+
+    var x = tests.includes('design')
+
+    if (x == true) {
+        res.render('index', {
+            msg: message1
+        })
+    } else {
+        now = 'design'
+        myques.find({
+            title: 'Design'
+        }, (err, userTest) => {
+            var n = userTest.length
+            console.log(n)
+            var arr = []
+            l = []
+            ctr = 0
+            while (ctr != 10) {
+                x = Math.floor(Math.random() * n)
+                if (l.includes(x) == false) {
+                    l.push(x)
+                    ctr = ctr + 1
+                }
+            }
+
+            for (i = 0; i < 10; i++) {
+                var value = userTest[l[i]].ques
+                arr.push(value)
+            }
+
+            res.render('test', {
+                title: 'Design',
+                dom: 'Design',
+                ques: arr,
+                name: message1
+            })
+
+        })
+    }
+})
+
+app.listen(3002, () => {
+    console.log('Server is running on http://localhost:3002')
 })

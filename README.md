@@ -36,4 +36,20 @@ Common Entry Test empowers users with a distinctive set of features that other c
 
 ## Check out Common Entry Test's demo video here:
 
-<http://bit.ly/cetdemo>
+<http://bit.ly/cetdemovideo>
+
+## Instructions to run:
+
+```
+$ git clone https://github.com/CodeChefVIT/common-entry-test.git
+$ cd common-entry-test
+$ npm install
+1) Install MongoDB from https://www.mongodb.com/download-center/community in your system.
+$ node app.js
+2) Open localhost:3002 in your browser.
+```
+
+## Built by:
+* [Navyaa Sharma](https://github.com/NavyaaSharma)
+* [Akshat Gupta](https://github.com/akshatvg)
+

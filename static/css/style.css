@@ -1,4 +1,3 @@
-
 /*-----------------------------------------------------------------------------------
    CSS INDEX
   ===================
@@ -15,11 +14,55 @@
 
 -----------------------------------------------------------------------------------*/
 
+/* Education Timeline */
+
+ul.timeline {
+  list-style-type: none;
+  position: relative;
+}
+
+ul.timeline:before {
+  content: ' ';
+  background: #3EC1D5;
+  display: inline-block;
+  position: absolute;
+  left: 29px;
+  width: 2px;
+  height: 100%;
+  z-index: 400;
+}
+
+ul.timeline>li {
+  margin: 20px 0;
+  padding-left: 20px;
+  margin-left: 30px;
+}
+
+ul.timeline>li:before {
+  content: ' ';
+  background: rgba(245, 245, 245, 0.959);
+  display: inline-block;
+  position: absolute;
+  border-radius: 50%;
+  border: 3px solid #3EC1D5;
+  left: 20px;
+  width: 20px;
+  height: 20px;
+  z-index: 400;
+}
+
+p,
+#dates,
+h5 {
+  color: whitesmoke;
+}
+
 /*----------------------------------------*/
 /*  1.  Theme default CSS
 /*----------------------------------------*/
 
-html, body {
+html,
+body {
   height: 100%;
 }
 
@@ -63,13 +106,18 @@ img {
 
 p {
   margin: 0 0 15px;
-  color: #444;
+  color: black;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: 'Raleway', sans-serif;
   margin: 0 0 15px;
-  color: #444;
+  color: black;
   font-weight: 500;
 }
 
@@ -113,7 +161,8 @@ a:hover {
   text-decoration: none;
 }
 
-a:active, a:hover {
+a:active,
+a:hover {
   outline: 0 none;
 }
 
@@ -168,7 +217,17 @@ ul {
   padding: 0;
 }
 
-input, select, textarea, input[type="text"], input[type="date"], input[type="url"], input[type="email"], input[type="password"], input[type="tel"], button, button[type="submit"] {
+input,
+select,
+textarea,
+input[type="text"],
+input[type="date"],
+input[type="url"],
+input[type="email"],
+input[type="password"],
+input[type="tel"],
+button,
+button[type="submit"] {
   -moz-appearance: none;
   box-shadow: none !important;
 }
@@ -210,14 +269,35 @@ div#preloader {
   display: inline-block;
   font-size: 40px;
   font-weight: 600;
+  margin-top: 50px;
   margin-bottom: 70px;
   position: relative;
   text-transform: capitalize;
 }
 
 .section-headline h2::after {
-  border: 1px solid #333;
+  border: 1px solid black;
   bottom: -20px;
+  content: "";
+  left: 0;
+  margin: 0 auto;
+  position: absolute;
+  right: 0;
+  width: 40%;
+}
+
+.section-headline1 h2 {
+  display: inline-block;
+  font-size: 40px;
+  font-weight: 600;
+  margin-top: 50px;
+  margin-bottom: 70px;
+  position: relative;
+  text-transform: capitalize;
+}
+
+.section-headline1 h2::after {
+  border: 1px solid whitesmoke bottom: -20px;
   content: "";
   left: 0;
   margin: 0 auto;
@@ -272,7 +352,7 @@ div#preloader {
   letter-spacing: 1px;
 }
 
-.main-menu ul.navbar-nav li.active > a::after {
+.main-menu ul.navbar-nav li.active>a::after {
   border: 1px solid #fff;
   bottom: 0px;
   content: "";
@@ -309,7 +389,9 @@ div#preloader {
   background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
 }
 
-.main-menu ul.navbar-default .navbar-nav>.active>a, .navbar-default .navbar-nav>.active>a:hover, .navbar-default .navbar-nav>.active>a:focus {
+.main-menu ul.navbar-default .navbar-nav>.active>a,
+.navbar-default .navbar-nav>.active>a:hover,
+.navbar-default .navbar-nav>.active>a:focus {
   background: none;
   color: #333;
 }
@@ -321,12 +403,14 @@ div#preloader {
   padding: 25px 0px;
 }
 
-.navbar-default .navbar-nav>li>a:hover, .navbar-default .navbar-nav>li>a:focus {
+.navbar-default .navbar-nav>li>a:hover,
+.navbar-default .navbar-nav>li>a:focus {
   background-color: transparent;
   color: #fff;
 }
 
-.navbar-default .navbar-toggle:hover, .navbar-default .navbar-toggle:focus {
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
   background: none;
 }
 
@@ -399,7 +483,8 @@ div#preloader {
 .sticky-logo h1 span {
   color: #3ec1d5;
 }
-.stick .main-menu ul.navbar-nav li.active > a::after {
+
+.stick .main-menu ul.navbar-nav li.active>a::after {
   border: 1px solid #fff;
   bottom: 0px;
   content: "";
@@ -418,13 +503,17 @@ div#preloader {
   position: relative;
 }
 
-.stick .mainmenu ul#nav>li:hover>a, .stick .mainmenu ul#nav li .mega-menu, .stick .mainmenu ul#nav li ul.sub-menu {
+.stick .mainmenu ul#nav>li:hover>a,
+.stick .mainmenu ul#nav li .mega-menu,
+.stick .mainmenu ul#nav li ul.sub-menu {
   background-color: #f5f5f5;
   color: #fff;
   outline: medium none;
 }
 
-.stick .mainmenu ul#nav li:hover ul.sub-menu li a:hover, .mainmenu ul#nav li .mega-menu span>a:hover, .stick .mainmenu ul#nav li .mega-menu-shop a.mega-menu-title:hover {
+.stick .mainmenu ul#nav li:hover ul.sub-menu li a:hover,
+.mainmenu ul#nav li .mega-menu span>a:hover,
+.stick .mainmenu ul#nav li .mega-menu-shop a.mega-menu-title:hover {
   color: #fff;
 }
 
@@ -504,7 +593,8 @@ div#preloader {
   transition: all 0.5s ease 0s;
 }
 
-.services-details:hover h4, .services-details:hover .services-icon {
+.services-details:hover h4,
+.services-details:hover .services-icon {
   color: #3EC1D5;
 }
 
@@ -547,7 +637,8 @@ div#preloader {
   padding: 100px;
 }
 
-.contact-form input[type="text"], .contact-form input[type="email"] {
+.contact-form input[type="text"],
+.contact-form input[type="email"] {
   background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
   border: 1px solid #ccc;
   border-radius: 0;
@@ -558,7 +649,7 @@ div#preloader {
   width: 100%;
 }
 
-.contact-form textarea  {
+.contact-form textarea {
   background: rgba(0, 0, 0, 0) none repeat scroll 0 0;
   border: 1px solid #ccc;
   border-radius: 0;
@@ -587,7 +678,7 @@ div#preloader {
   background: #3EC1D5;
 }
 
-.contact-form  #sendmessage {
+.contact-form #sendmessage {
   color: #3EC1D5;
   border: 1px solid #3EC1D5;
   display: none;
@@ -607,7 +698,9 @@ div#preloader {
   margin-bottom: 15px;
 }
 
-.contact-form #sendmessage.show, .contact-form #errormessage.show, .contact-form .show {
+.contact-form #sendmessage.show,
+.contact-form #errormessage.show,
+.contact-form .show {
   display: block;
 }
 
@@ -723,7 +816,8 @@ div#preloader {
   overflow: hidden;
 }
 
-.popular-tag ul li a:hover, .footer-icons ul li a:hover {
+.popular-tag ul li a:hover,
+.footer-icons ul li a:hover {
   background: #3EC1D5;
   border: 1px solid #3EC1D5;
   color: #fff;
@@ -765,7 +859,8 @@ div#preloader {
   color: #444;
 }
 
-.copyright a, .credits a {
+.copyright a,
+.credits a {
   color: #3EC1D5;
 }
 
@@ -800,7 +895,8 @@ div#preloader {
   width: 100%;
 }
 
-.home-2 .layer-1-3, .home-3 .layer-1-3 {
+.home-2 .layer-1-3,
+.home-3 .layer-1-3 {
   margin: 10px 0 0;
 }
 

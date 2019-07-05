@@ -1,0 +1,38 @@
+{
+  "name": "common-entry-test",
+  "version": "1.0.0",
+  "description": "Common Entry Test is a one stop solution portal to club and chapter recruitments in VIT.",
+  "main": "app.js",
+  "dependencies": {
+    "express": "^4.17.0",
+    "express-session": "^1.16.1",
+    "hbs": "^4.0.4",
+    "mongodb": "^3.2.5",
+    "mongoose": "^5.5.13",
+    "path": "^0.12.7",
+    "validator": "^11.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akshatvg/common-entry-test.git"
+  },
+  "author": "Akshat Gupta & Navyaa Sharma",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://cet.akshatvg.tech"
+  },
+  "homepage": "https://cet.akshatvg.tech",
+  "keywords": [
+    "common-entry-test",
+    "recruitments",
+    "vit",
+    "club",
+    "chapters",
+    "test"
+  ]
+}
