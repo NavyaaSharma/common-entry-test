@@ -38,6 +38,12 @@ Common Entry Test empowers users with a distinctive set of features that other c
 
 <http://bit.ly/cetdemovideo>
 
+
+## Our project has been deployed at:
+
+<https://common-entry-test-cet.herokuapp.com>
+
+
 ## Instructions to run:
 
 ```
