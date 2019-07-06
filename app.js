@@ -1,4 +1,5 @@
 var express = require('express')
+var port = process.env.PORT || 3002
 var app = express()
 var path = require('path')
 var session = require('express-session')
@@ -705,6 +706,6 @@ app.get('/designexam', auth, function (err, res) {
     }
 })
 
-app.listen(3002, () => {
+app.listen(port, () => {
     console.log('Server is running on http://localhost:3002')
 })
