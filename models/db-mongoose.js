@@ -1,7 +1,7 @@
 var mongoose=require('mongoose')
 var validator=require('validator')
 
-mongoose.connect('mongodb://localhost:27017/record',{useNewUrlParser:true})
+mongoose.connect('mongodb+srv://commonentrytest:codechef@cluster0-nihwk.mongodb.net/test?retryWrites=true&w=majority',{useNewUrlParser:true})
 
 var users=new mongoose.Schema({
     name:{
