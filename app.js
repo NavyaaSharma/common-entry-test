@@ -152,6 +152,12 @@ app.get('/manage',auth,function(req,res){
         msg:message1
     })
 })
+app.get('/calender',auth,function(req,res){
+    res.render('calender',{
+       
+        msg:message1
+    })
+})
 
 var message2=""
 
