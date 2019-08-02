@@ -220,9 +220,18 @@
             <br>
             <h2>Common Entry Test</h2>
         </div>
-        <div class="section-headline text-center">
-            <h2 style="color:red">{{message}}</h2>
-        </div>
+        {{#each success}}
+            <div class="alert alert-success">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                {{this.text}}
+            </div>
+            {{/each}}
+        {{#each errors}}
+            <div class="alert alert-danger">
+                <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                {{this.text}}
+            </div>
+            {{/each}}
         <div class="signup-form">
             <form action="/userLogin" method="GET" style="box-shadow: 0px 1px 5px black;">
                 <h2>Login</h2>

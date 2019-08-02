@@ -125,6 +125,12 @@
                 </div>
             </div>
             <div class="row text-center">
+                {{#each errors}}
+                <div class="alert alert-danger">
+                    <a href="#" class="close" data-dismiss="alert" aria-label="close">&times;</a>
+                    {{this.text}}   
+                </div>
+                {{/each}}
                 <div class="services-contents">
                     <div class="col-md-4 col-sm-4 col-xs-12">
                         <div class="about-move">

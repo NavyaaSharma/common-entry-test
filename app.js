@@ -2,11 +2,22 @@ var express=require('express')
 var app=express()
 var path=require('path')
 var session=require('express-session')
+
+//db connection
+require('dotenv').config()
+var db=require('./config/keys')
+var mongoose=require('mongoose')
+mongoose.connect(db.mongoDB,{useNewUrlParser:true})
+
+//models
 var userRegister=require('./models/db-mongoose')
 var myques=require('./models/db-ques')
-var bodyParser=require('body-parser')
+var contactUs=require('./models/db-contact')
 var ans=require('./models/db-answers')
-var keys=require('./config/keys')
+
+
+var bodyParser=require('body-parser')
+var validator=require('validator')
 
 var port=process.env.PORT || 3002
 
@@ -39,14 +50,14 @@ var auth = function(req, res, next) {
 //defining global variables
 var userSession
 var Name
-var now
 var message1
 var newarr=[]
-var tests=[]
 var useremail
 
 app.get('/',(req,res)=>{
-    res.sendFile(path.join(__dirname+'/static/signup.html'))
+    res.render('signup',{
+        message:""
+     })
 })
 
 app.get('/signin',(req,res)=>{
@@ -63,20 +74,62 @@ app.get('/userSignup',(req,res)=>{
     var rno=req.query.regno;
     var pass=req.query.password;
 
-    var user=new userRegister({
-        name:uname1+" "+uname2,
-        email:uemail,
-        phone,
-        regno:rno,
-        password:pass
-    })
-    user.save()
-    res.render('signin',{
-
-        message:" "
-     })
-
+        let errors=[]
+        if(phone.length!=10)
+        {
+            errors.push({text:"Invalid phone number"})
+        }
+        if(!validator.isEmail(uemail))
+        {
+            errors.push({text:"Invalid email"})
+        }
+        if(errors.length>0)
+        {
+            res.render('signup',{
+                errors:errors
+    
+            })
+        }
+        else{
+           userRegister.findOne({email:uemail}).then((user)=>{
+               let errors=[]
+               if(user)
+               {
+                errors.push({text:'User already exists'})
+                res.render('signup',{
+                    errors:errors
+        
+                })
+               }
+               else{
+                  
+                var newuser={
+                            name:uname1+" "+uname2,
+                            email:uemail,
+                            phone,
+                            regno:rno,
+                            password:pass
+                        }
+                   new userRegister(newuser).save((err,user)=>{
+                       if(err)
+                       {
+                           throw err;
+                       }
+                       let success=[]
+                       if(user)
+                       {
+                           success.push({text:'Account created successfully! You can login now.'})
+                           res.render('signin',{
+                               success:success
+                           })
+    
+                       }
+                   })
+               }
+           })
+        }
 })
+
 
 app.get('/userlogin',(req,res)=>{
 
@@ -92,16 +145,17 @@ app.get('/userlogin',(req,res)=>{
     else
     {
         userRegister.find({email:lname,password:lpass},(err,user)=>{
+            let errors=[]
             if(err)
             {
                 throw err
             }
             console.log(user)
             if(user.length==0)
-            {
+            {  
+                errors.push({text:'Invalid email or password '})
                 res.render('signin',{
-                    layout:false,
-                    message:"Invalid email or password "
+                    errors:errors
                 })
             }
             else{
@@ -119,6 +173,25 @@ app.get('/userlogin',(req,res)=>{
     }
 
     
+})
+
+app.post('/contact',(req,res)=>{
+    const newmsg={
+        name:message1,
+        email:useremail,
+        subject:req.body.subject,
+        message:req.body.message,
+        date:new Date
+    }
+
+    new contactUs(newmsg).save((err,data)=>{
+        if(err)
+        {
+            throw err
+        }
+        console.log('message sent')
+    })
+
 })
 app.get('/index',auth,function(req,res){
     res.render('index',{
@@ -186,7 +259,6 @@ app.get('/admin',function(req,res){
 app.get('/logout' ,auth, function(req,res){
     userSession = req.session;
     Name=undefined
-    lists=[]
 	req.session.destroy(function(err){
         if(err)
         {
@@ -280,9 +352,7 @@ app.get('/success',(req,res)=>{
 })
 
 app.get('/complete',(req,res)=>{
-    
-    tests.push(now)
-    now=undefined
+
     res.render('complete')
     
 })
@@ -290,17 +360,68 @@ app.get('/complete',(req,res)=>{
 
 app.get('/webexam',function(err,res){
 
-    var x=tests.includes('web')
-
-    if(x==true)
-    {
-        res.render('index',{
-            msg:message1
+    ans.findOne({email:useremail,title:'Web Development'},(err,user)=>{
+        let errors=[]
+        
+        if(user)
+        {
+            errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
+        }
+        else{
+            myques.find({title:'Web Development'},(err,userTest)=>{
+                var n=userTest.length
+                var arr=[]
+                l=[]
+                ctr=0
+                while(ctr!=10)
+                {
+                    x=Math.floor(Math.random()*n)
+                    if(l.includes(x)==false)
+                    {
+                        l.push(x)
+                        ctr=ctr+1
+                    }
+                }
+                
+                for(i=0;i<10;i++)
+                {
+                    var value=userTest[l[i]].ques
+                    arr.push(value)
+                }
+                
+                res.render('test',{
+                    title:'Web Development',
+                    dom:'Technical',
+                    ques:arr,
+                    name:message1
+                    
+                })
+        
+            })
+                
+        }
         })
-    }
-    else{
-        now='web'
-        myques.find({title:'Web Development'},(err,userTest)=>{
+    
+})
+
+app.get('/comcodexam',auth,function(err,res){
+
+    ans.findOne({email:useremail,title:'Competitive Coding'},(err,user)=>{
+        let errors=[]
+        if(user)
+        {
+            errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
+        }
+        else{
+        myques.find({title:'Competitive Coding'},(err,userTest)=>{
             var n=userTest.length
             var arr=[]
             l=[]
@@ -322,79 +443,33 @@ app.get('/webexam',function(err,res){
             }
             
             res.render('test',{
-                title:'Web Development',
+                title:'Competitive Coding',
                 dom:'Technical',
                 ques:arr,
                 name:message1
                 
             })
-    
-    
-        })
-            
-    }
         
-    
-})
-
-app.get('/comcodexam',auth,function(err,res){
-
-    var x=tests.includes('cc')
-
-    if(x==true)
-    {
-        res.render('index',{
-            msg:message1
         })
     }
-    else{
-    now='cc'
-    myques.find({title:'Competitive Coding'},(err,userTest)=>{
-        var n=userTest.length
-        var arr=[]
-        l=[]
-        ctr=0
-        while(ctr!=10)
-        {
-            x=Math.floor(Math.random()*n)
-            if(l.includes(x)==false)
-            {
-                l.push(x)
-                ctr=ctr+1
-            }
-        }
-        
-        for(i=0;i<10;i++)
-        {
-            var value=userTest[l[i]].ques
-            arr.push(value)
-        }
-        
-        res.render('test',{
-            title:'Competitive Coding',
-            dom:'Technical',
-            ques:arr,
-            name:message1
-            
         })
     
-    })
-}
 })
 
 
 app.get('/mlaiexam',auth,function(err,res){
 
-    var x=tests.includes('mlai')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'Machine Learning & Artificial Intelligence'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='mlai'
     myques.find({title:'Machine Learning & Artificial Intelligence'},(err,userTest1)=>{
         var n=userTest1.length
         var arr=[]
@@ -425,20 +500,23 @@ app.get('/mlaiexam',auth,function(err,res){
         })
     })
     }
+    })
+    
 })
 
 app.get('/appexam',auth,function(err,res){
     
-    var x=tests.includes('app')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'App Development'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='app'
         myques.find({title:'App Development'},(err,userTest1)=>{
             var n=userTest1.length
             var arr=[]
@@ -470,21 +548,24 @@ app.get('/appexam',auth,function(err,res){
             })
     }
     
+    })
+    
 })
     
 
 app.get('/blockchain',auth,function(err,res){
 
-    var x=tests.includes('blockchain')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'Blockchain'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-    now='blockchain'
     myques.find({title:'Blockchain'},(err,userTest)=>{
         var n=userTest.length
         var arr=[]
@@ -516,20 +597,23 @@ app.get('/blockchain',auth,function(err,res){
     
     })
     }
+    })
 })
 
 app.get('/vrexam',auth,function(err,res){
     
-    var x=tests.includes('vr')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'Augmented & Virtual Reality'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='vr'
+    
     myques.find({title:'Augmented & Virtual Reality'},(err,userTest)=>{
         var n=userTest.length
         var arr=[]
@@ -561,20 +645,23 @@ app.get('/vrexam',auth,function(err,res){
     
     })
     }
+    })
 })
 
 app.get('/opexam',auth,function(err,res){
 
-    var x=tests.includes('op')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'Operations'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='op'
+
     myques.find({title:'Operations'},(err,userTest)=>{
         var n=userTest.length
         var arr=[]
@@ -606,20 +693,23 @@ app.get('/opexam',auth,function(err,res){
     
     })
     }
+    })
 })
 
 app.get('/sponsexam',auth,function(err,res){
     
-    var x=tests.includes('spons')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'Sponsorship'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='spons'
+
     myques.find({title:'Sponsorship'},(err,userTest)=>{
         var n=userTest.length
         var arr=[]
@@ -651,19 +741,22 @@ app.get('/sponsexam',auth,function(err,res){
     
     })
     }    
+    })
 })
 
 app.get('/cwexam',auth,function(err,res){
-    var x=tests.includes('cw')
-
-    if(x==true)
+    
+    ans.findOne({email:useremail,title:'Content Writing'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='cw'
     myques.find({title:'Content Writing'},(err,userTest)=>{
         var n=userTest.length
         var arr=[]
@@ -695,20 +788,24 @@ app.get('/cwexam',auth,function(err,res){
     
     })  
     } 
+    })
+    
 })
 
 app.get('/designexam',auth,function(err,res){
 
-    var x=tests.includes('design')
-
-    if(x==true)
+    ans.findOne({email:useremail,title:'Design'},(err,user)=>{
+        let errors=[]
+        if(user)
     {
-        res.render('index',{
-            msg:message1
-        })
+        errors.push({text:'You have already attempted this test!'})
+            res.render('exam',{
+                msg:message1,
+                errors:errors
+            })
     }
     else{
-        now='design'
+
         myques.find({title:'Design'},(err,userTest)=>{
             var n=userTest.length
             console.log(n)
@@ -740,6 +837,7 @@ app.get('/designexam',auth,function(err,res){
         
         })
     }
+    })
 })
 
 app.listen(port,()=>

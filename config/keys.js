@@ -1,8 +1,5 @@
-if(process.env.NODE_ENV ==='production')
-{
-    module.exports=require('./prod')
+
+var db={
+    mongoDB:process.env.MONGO_DB || process.env.MONGODB
 }
-else
-{
-    module.exports=require('./dev')
-}
+module.exports=db

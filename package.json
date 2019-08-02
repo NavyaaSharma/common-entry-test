@@ -4,13 +4,14 @@
   "description": "Common Entry Test is a one stop solution portal to club and chapter recruitments in VIT.",
   "main": "app.js",
   "dependencies": {
+    "dotenv": "^8.0.0",
     "express": "^4.17.0",
     "express-session": "^1.16.1",
     "hbs": "^4.0.4",
     "mongodb": "^3.2.5",
     "mongoose": "^5.5.13",
     "path": "^0.12.7",
-    "validator": "^11.0.0"
+    "validator": "^11.1.0"
   },
   "devDependencies": {},
   "scripts": {
